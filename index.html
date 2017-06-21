@@ -1,23 +1,77 @@
 <!doctype html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>hello phaser!</title>
-        <script src="//cdn.jsdelivr.net/phaser/2.5.0/phaser.min.js"></script>
-    </head>
-    <body>
-        <script type="text/javascript">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>hello phaser!</title>
+    <script src="//cdn.jsdelivr.net/phaser/2.5.0/phaser.min.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        var videoArray = new Array();
+        var videoCode = "";
+        var searchQuery = "";
+        var APIKey = "AIzaSyC2Tfuw9gBpry53Wwlc-U5n6x9LY2F67Ds";
         window.onload = function() {
-        //  Note that this html file is set to pull down Phaser 2.5.0 from the JS Delivr CDN.
-        //  Although it will work fine with this tutorial, it's almost certainly not the most current version.
-        //  Be sure to replace it with an updated version before you start experimenting with adding your own code.
-        //var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create });
-        function preload () {
-        }
-        function create () {
-        }
+
+            //var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create });
+            var json_string;
+
+            function preload() {}
+
+            function create() {}
+
+            getNewSearch();
         };
-        </script>
-        <iframe width="560" height="315" src="https://www.youtube.com/embed/rXlzkyb4D-4" frameborder="0" allowfullscreen></iframe>
-    </body>
+
+        function getNewSearch(){
+            httpGetAsync("http://api.wordnik.com:80/v4/words.json/randomWords?hasDictionaryDef=false&minCorpusCount=0&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=5&maxLength=-1&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5", getNewListVideos);
+        }
+
+        function getNewListVideos(response){
+            var randomWord = JSON.parse(response);
+            searchQuery = randomWord[0].word;
+            console.log(searchQuery);
+
+            httpGetAsync("https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q="+searchQuery+"&key="+APIKey, getNewVideo);
+        }
+
+        function getNewVideo(response) {
+            var searchData = JSON.parse(response);
+            videoCode = searchData.items[Math.floor((Math.random() * 24) + 1)].id.videoId;
+
+            document.getElementById('youtubeVideo').setAttribute('src', "https://www.youtube.com/embed/"+videoCode);
+
+            httpGetAsync("https://www.googleapis.com/youtube/v3/videos?id=" + videoCode + "&key=" + APIKey + "&part=statistics", videoData);
+        }
+
+        function videoData(response) {
+            var videoData = JSON.parse(response);
+        }
+
+        function httpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    callback(xmlHttp.responseText);
+            }
+
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous
+            xmlHttp.send(null);
+        }
+
+        function makeYouTubeID() {
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-";
+            for (var i = 0; i < 1; i++)
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            return text;
+        }
+    </script>
+
+    <iframe width="560" height="315" id="youtubeVideo" src="" frameborder="0" allowfullscreen></iframe>
+
+</body>
+
 </html>
