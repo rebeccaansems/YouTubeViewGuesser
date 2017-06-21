@@ -13,6 +13,10 @@
         var videoCode = "";
         var searchQuery = "";
         var APIKey = "AIzaSyC2Tfuw9gBpry53Wwlc-U5n6x9LY2F67Ds";
+        var videoData;
+        var score = 0;
+
+
         window.onload = function() {
 
             //var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create });
@@ -32,7 +36,6 @@
         function getNewListVideos(response){
             var randomWord = JSON.parse(response);
             searchQuery = randomWord[0].word;
-            console.log(searchQuery);
 
             httpGetAsync("https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q="+searchQuery+"&key="+APIKey, getNewVideo);
         }
@@ -43,11 +46,11 @@
 
             document.getElementById('youtubeVideo').setAttribute('src', "https://www.youtube.com/embed/"+videoCode);
 
-            httpGetAsync("https://www.googleapis.com/youtube/v3/videos?id=" + videoCode + "&key=" + APIKey + "&part=statistics", videoData);
+            httpGetAsync("https://www.googleapis.com/youtube/v3/videos?id=" + videoCode + "&key=" + APIKey + "&part=statistics", setVideoData);
         }
 
-        function videoData(response) {
-            var videoData = JSON.parse(response);
+        function setVideoData(response) {
+            videoData = JSON.parse(response);
         }
 
         function httpGetAsync(theUrl, callback) {
@@ -61,16 +64,28 @@
             xmlHttp.send(null);
         }
 
-        function makeYouTubeID() {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-";
-            for (var i = 0; i < 1; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-            return text;
+        function scoreViewGuess(){
+            var maxNum = Math.max(document.getElementById('viewGuess').value, videoData.items[0].statistics.viewCount);
+            var minNum = Math.min(document.getElementById('viewGuess').value, videoData.items[0].statistics.viewCount);
+
+            console.log(document.getElementById('viewGuess').value);
+
+            score = score + ((minNum/maxNum)*10000);
+
+            document.getElementById("currentScore").innerHTML = score;
+
+            getNewSearch();
         }
+
     </script>
 
     <iframe width="560" height="315" id="youtubeVideo" src="" frameborder="0" allowfullscreen></iframe>
+
+    <p id="currentScore"></p>
+    <script>document.getElementById("currentScore").innerHTML = score; </script>
+
+    <input id="viewGuess" type="text" />
+    <button onclick="scoreViewGuess()">Click me</button>
 
 </body>
 
